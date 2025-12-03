@@ -122,7 +122,11 @@
                             <div class="space-y-4 mb-6"><div class="flex justify-between items-baseline"><span class="text-gray-600">綠覆總面積:</span><span id="greenAreaResult-surface" class="font-bold text-xl text-teal-600">0.00 M²</span></div><div class="flex justify-between items-baseline"><span class="text-gray-600">綠覆率:</span><span id="greenRateResult-surface" class="font-bold text-xl text-teal-600">0.00 %</span></div></div>
                             <div class="bg-gray-50 p-4 rounded-lg space-y-3"><h3 class="text-lg font-semibold text-gray-700 mb-2">各項得分</h3><div class="flex justify-between text-sm"><span class="text-gray-600">一、綠覆率</span><span id="score1-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">二、透水鋪面</span><span id="score2-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">三、植栽穴</span><span id="score3-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">四、生長狀況</span><span id="score4-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">五、設計妥適性</span><span id="score5-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">六、維護管理</span><span id="score6-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">七、創新作為</span><span id="score7-surface" class="font-medium text-gray-800">0 分</span></div></div>
                             <div class="mt-6 pt-6 border-t-2 border-dashed border-gray-300 text-center"><p class="text-lg text-gray-600">總得分</p><p id="totalScore-surface" class="text-6xl font-bold text-teal-700 score-highlight mt-2">0</p></div>
-                            <div class="mt-6 text-center no-print"><button id="saveButton-surface" class="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-300 ease-in-out">存檔 (PDF)</button></div>
+                            <!-- Updated Buttons: Side by Side -->
+                            <div class="mt-6 grid grid-cols-2 gap-3 no-print">
+                                <button id="saveImgButton-surface" class="w-full bg-sky-600 text-white font-bold py-3 px-2 rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition duration-300 ease-in-out">存檔 (圖片)</button>
+                                <button id="savePdfButton-surface" class="w-full bg-teal-600 text-white font-bold py-3 px-2 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-300 ease-in-out">存檔 (PDF)</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -171,7 +175,11 @@
                             <div class="space-y-4 mb-6"><div class="flex justify-between items-baseline"><span class="text-gray-600">建築總面積:</span><span id="totalBuildingAreaResult-multistory" class="font-bold text-xl text-teal-600">0.00 M²</span></div><div class="flex justify-between items-baseline"><span class="text-gray-600">綠覆總面積:</span><span id="greenAreaResult-multistory" class="font-bold text-xl text-teal-600">0.00 M²</span></div><div class="flex justify-between items-baseline"><span class="text-gray-600">綠覆率:</span><span id="greenRateResult-multistory" class="font-bold text-xl text-teal-600">0.00 %</span></div></div>
                             <div class="bg-gray-50 p-4 rounded-lg space-y-3"><h3 class="text-lg font-semibold text-gray-700 mb-2">各項得分</h3><div class="flex justify-between text-sm"><span class="text-gray-600">一、綠覆率</span><span id="score1-multistory" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">二、生長狀況</span><span id="score2-multistory" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">三、設計妥適性</span><span id="score3-multistory" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">四、維護管理</span><span id="score4-multistory" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">五、創新作為</span><span id="score5-multistory" class="font-medium text-gray-800">0 分</span></div></div>
                             <div class="mt-6 pt-6 border-t-2 border-dashed border-gray-300 text-center"><p class="text-lg text-gray-600">總得分</p><p id="totalScore-multistory" class="text-6xl font-bold text-teal-700 score-highlight mt-2">0</p></div>
-                            <div class="mt-6 text-center no-print"><button id="saveButton-multistory" class="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-300 ease-in-out">存檔 (PDF)</button></div>
+                            <!-- Updated Buttons: Side by Side -->
+                            <div class="mt-6 grid grid-cols-2 gap-3 no-print">
+                                <button id="saveImgButton-multistory" class="w-full bg-sky-600 text-white font-bold py-3 px-2 rounded-lg hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition duration-300 ease-in-out">存檔 (圖片)</button>
+                                <button id="savePdfButton-multistory" class="w-full bg-teal-600 text-white font-bold py-3 px-2 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-300 ease-in-out">存檔 (PDF)</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -233,7 +241,9 @@
         score6: getEl('score6-surface'),
         score7: getEl('score7-surface'),
         totalScore: getEl('totalScore-surface'),
-        saveButton: getEl('saveButton-surface')
+        // Updated buttons
+        saveImgButton: getEl('saveImgButton-surface'),
+        savePdfButton: getEl('savePdfButton-surface')
     };
 
     // --- Multi-story Lot Elements ---
@@ -268,7 +278,9 @@
         score4: getEl('score4-multistory'),
         score5: getEl('score5-multistory'),
         totalScore: getEl('totalScore-multistory'),
-        saveButton: getEl('saveButton-multistory')
+        // Updated buttons
+        saveImgButton: getEl('saveImgButton-multistory'),
+        savePdfButton: getEl('savePdfButton-multistory')
     };
 
 
@@ -427,44 +439,56 @@
         }
     }
 
-    // --- Save to PDF Logic ---
-    function saveAsPdf(type) {
-        const button = (type === 'surface') ? surfaceElements.saveButton : multistoryElements.saveButton;
-        const lotTypeName = (type === 'surface') ? '平面停車場' : '立體停車場';
+    // --- Save Logic (Unified Image/PDF) ---
+    function saveContent(tabType, format) {
+        const el = (tabType === 'surface') ? surfaceElements : multistoryElements;
+        const button = (format === 'image') ? el.saveImgButton : el.savePdfButton;
+        const originalBtnText = button.textContent;
+        const lotTypeName = (tabType === 'surface') ? '平面停車場' : '立體停車場';
+        const district = districtSelect.value;
+        const parkingLotName = parkingLotNameInput.value.trim() || '未命名停車場';
+        const dateString = evaluationDateInput.value || '未指定日期';
+        const filenameBase = `[${district}]${parkingLotName}_${lotTypeName}綠美化評分_${dateString}`;
 
-        button.disabled = true;
-        // button.textContent = '處理中...'; // Removed as per user request
+        // Disable both buttons during processing
+        el.saveImgButton.disabled = true;
+        el.savePdfButton.disabled = true;
+        button.textContent = '處理中...';
 
         html2canvas(getEl('capture-area'), { 
             scale: 2, 
             useCORS: true,
+            logging: false,
             onclone: (clonedDoc) => {
                 const formElements = clonedDoc.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], select');
                 formElements.forEach(el => {
                     const replacement = clonedDoc.createElement('div');
                     const computedStyle = window.getComputedStyle(el);
                     
-                    // Copy all relevant styles for layout and appearance
+                    // Copy all styles first
+                    Array.from(computedStyle).forEach(key => {
+                        replacement.style.setProperty(key, computedStyle.getPropertyValue(key), computedStyle.getPropertyPriority(key));
+                    });
+                    
+                    // --- KEY FIX FOR CUT-OFF TEXT ---
+                    // Explicitly set dimensions and centering
                     replacement.style.width = computedStyle.width;
                     replacement.style.height = computedStyle.height;
                     replacement.style.border = computedStyle.border;
                     replacement.style.borderRadius = computedStyle.borderRadius;
                     replacement.style.backgroundColor = '#ffffff';
-                    replacement.style.fontSize = computedStyle.fontSize;
-                    replacement.style.fontFamily = computedStyle.fontFamily;
-                    replacement.style.color = computedStyle.color;
                     replacement.style.boxSizing = 'border-box';
-                    replacement.style.paddingLeft = computedStyle.paddingLeft;
-                    replacement.style.paddingRight = computedStyle.paddingRight;
-                    replacement.style.marginTop = computedStyle.marginTop;
-                    replacement.style.marginRight = computedStyle.marginRight;
-                    replacement.style.marginBottom = computedStyle.marginBottom;
-                    replacement.style.marginLeft = computedStyle.marginLeft;
+                    replacement.style.overflow = 'visible'; // Allow overflow
 
-                    // The ultimate centering solution using a nested span and flexbox
+                    // RESET Padding for centering calculation (keep left/right if needed)
+                    replacement.style.paddingTop = '0px';
+                    replacement.style.paddingBottom = '0px';
+                    
+                    // Use Flexbox to force perfect vertical centering
                     replacement.style.display = 'flex';
                     replacement.style.alignItems = 'center';
-
+                    // --------------------------------
+                    
                     let valueText = '';
                     if (el.tagName.toLowerCase() === 'select') {
                         valueText = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text.trim() : '';
@@ -472,8 +496,17 @@
                         valueText = el.value;
                     }
                     
-                    replacement.textContent = valueText || '\u00A0'; // Non-breaking space for empty fields
+                    // Create a span for the text to allow fine-tuning
+                    const textSpan = clonedDoc.createElement('span');
+                    textSpan.textContent = valueText || '\u00A0';
+                    // Fix: Shift text up slightly. html2canvas sometimes renders text lower than browsers.
+                    // A small negative margin usually fixes the "bottom cut off" issue.
+                    textSpan.style.marginTop = '-3px'; 
+                    textSpan.style.display = 'inline-block';
+                    textSpan.style.lineHeight = '1';
 
+                    replacement.appendChild(textSpan);
+                    
                     if (el.parentNode) {
                         el.parentNode.replaceChild(replacement, el);
                     }
@@ -481,36 +514,57 @@
             }
         })
         .then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const canvasAspectRatio = canvas.width / canvas.height;
-            let imgWidth = pdfWidth;
-            let imgHeight = pdfWidth / canvasAspectRatio;
-            if (imgHeight > pdfHeight) {
-                imgHeight = pdfHeight;
-                imgWidth = pdfHeight * canvasAspectRatio;
+            if (format === 'image') {
+                // Save as JPEG Image
+                const imgData = canvas.toDataURL('image/jpeg', 0.8);
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = `${filenameBase}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                // Save as PDF (Compressed)
+                const imgData = canvas.toDataURL('image/jpeg', 0.75);
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'p', 
+                    unit: 'mm', 
+                    format: 'a4',
+                    compress: true 
+                });
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasAspectRatio = canvas.width / canvas.height;
+                let imgWidth = pdfWidth;
+                let imgHeight = pdfWidth / canvasAspectRatio;
+                
+                if (imgHeight > pdfHeight) {
+                    imgHeight = pdfHeight;
+                    imgWidth = pdfHeight * canvasAspectRatio;
+                }
+                const xOffset = (pdfWidth - imgWidth) / 2;
+                pdf.addImage(imgData, 'JPEG', xOffset, 0, imgWidth, imgHeight);
+                pdf.save(`${filenameBase}.pdf`);
             }
-            const xOffset = (pdfWidth - imgWidth) / 2;
-            pdf.addImage(imgData, 'PNG', xOffset, 0, imgWidth, imgHeight);
 
-            const district = districtSelect.value;
-            const parkingLotName = parkingLotNameInput.value.trim() || '未命名停車場';
-            const dateString = evaluationDateInput.value || '未指定日期';
-            const filename = `[${district}]${parkingLotName}_${lotTypeName}綠美化評分_${dateString}.pdf`;
-            
-            pdf.save(filename);
-
+            button.textContent = '成功！';
+            setTimeout(() => {
+                 button.textContent = originalBtnText;
+                 el.saveImgButton.disabled = false;
+                 el.savePdfButton.disabled = false;
+            }, 1500);
         })
         .catch(err => {
-            console.error("PDF generation failed:", err);
-            alert('抱歉，存檔時發生錯誤。');
-        })
-        .finally(() => {
-            // No need for timeout, just re-enable the button
-            button.disabled = false;
+            console.error("Generation failed:", err);
+            button.textContent = '失敗';
+            button.classList.add('bg-red-600');
+            setTimeout(() => {
+                button.textContent = originalBtnText;
+                el.saveImgButton.disabled = false;
+                el.savePdfButton.disabled = false;
+                button.classList.remove('bg-red-600');
+            }, 3000);
         });
     }
     
@@ -529,8 +583,12 @@
 
     tabSurface.addEventListener('click', () => switchTab('surface'));
     tabMultistory.addEventListener('click', () => switchTab('multistory'));
-    surfaceElements.saveButton.addEventListener('click', () => saveAsPdf('surface'));
-    multistoryElements.saveButton.addEventListener('click', () => saveAsPdf('multistory'));
+    
+    // New Event Listeners for both buttons in both tabs
+    surfaceElements.saveImgButton.addEventListener('click', () => saveContent('surface', 'image'));
+    surfaceElements.savePdfButton.addEventListener('click', () => saveContent('surface', 'pdf'));
+    multistoryElements.saveImgButton.addEventListener('click', () => saveContent('multistory', 'image'));
+    multistoryElements.savePdfButton.addEventListener('click', () => saveContent('multistory', 'pdf'));
 
     window.addEventListener('load', () => {
         setDefaultDate();
