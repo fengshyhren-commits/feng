@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>建築系評分落點分析工具 (單機版)</title>
+    
+    <!-- 引入 Tailwind CSS (樣式庫) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 React 和 ReactDOM (核心框架) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- 引入 Babel (讓瀏覽器看懂 React 代碼) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- 內建圖示組件 (解決外部庫依賴錯誤) ---
+        const IconBase = ({ children, className, ...props }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className} 
+                {...props}
+            >
+                {children}
+            </svg>
+        );
+
+        const Users = (props) => (
+            <IconBase {...props}>
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </IconBase>
+        );
+
+        const Upload = (props) => (
+            <IconBase {...props}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+            </IconBase>
+        );
+
+        const Download = (props) => (
+            <IconBase {...props}>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+            </IconBase>
+        );
+
+        const FileSpreadsheet = (props) => (
+            <IconBase {...props}>
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14 2 14 8 20 8" />
+                <path d="M8 13h2" />
+                <path d="M8 17h2" />
+                <path d="M14 13h2" />
+                <path d="M14 17h2" />
+            </IconBase>
+        );
+
+        const AlertCircle = (props) => (
+            <IconBase {...props}>
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+            </IconBase>
+        );
+
+        const Settings = (props) => (
+            <IconBase {...props}>
+                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                <circle cx="12" cy="12" r="3" />
+            </IconBase>
+        );
+
+        const Trash2 = (props) => (
+            <IconBase {...props}>
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                <line x1="10" y1="11" x2="10" y2="17" />
+                <line x1="14" y1="11" x2="14" y2="17" />
+            </IconBase>
+        );
+
+        // --- 主應用程式 ---
+        const GradingApp = () => {
+            // 預設的範例資料
+            const demoData = `B09001\t陳一心\t92
+B09002\t林二同\t88
+B09003\t張三川\t75
+B09004\t李四海\t60
+B09005\t王五岳\t85
+B09006\t趙六合\t95
+B09007\t孫七星\t72
+B09008\t周八方\t68
+B09009\t吳九霄\t81
+B09010\t鄭十全\t55
+B09011\t劉十一\t89
+B09012\t朱十二\t78`;
+
+            const [inputText, setInputText] = useState(demoData);
+            const [students, setStudents] = useState([]);
+            const [error, setError] = useState('');
+
+            // 1. 評分模式: 'percentile' (排名百分比) 或 'score' (絕對分數)
+            const [mode, setMode] = useState('percentile');
+
+            // 2. 啟用的等級
+            const [activeGrades, setActiveGrades] = useState({
+                A: true,
+                B: true,
+                C: true,
+                D: false // 預設關閉 D
+            });
+
+            // 3. 門檻設定
+            const [config, setConfig] = useState({
+                percentile: { A: 20, B: 50, C: 80, D: 90 }, // 累積百分比 (Top X%)
+                score: { A: 90, B: 80, C: 70, D: 60 }       // 分數門檻 (>= X 分)
+            });
+
+            // 處理檔案上傳
+            const handleFileUpload = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const text = event.target.result;
+                    setInputText(text);
+                };
+                // 使用預設 UTF-8 讀取。如果 CSV 是 Excel 另存的 CSV (逗號分隔)，通常沒問題。
+                reader.readAsText(file);
+                
+                // 重置 input value 以便重複上傳同一個檔案
+                e.target.value = '';
+            };
+
+            // 解析輸入資料
+            useEffect(() => {
+                if (!inputText.trim()) {
+                    setStudents([]);
+                    return;
+                }
+
+                try {
+                    // 統一換行符號，處理 Windows/Mac 差異
+                    const normalizedText = inputText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                    const lines = normalizedText.trim().split('\n');
+                    
+                    const parsed = lines.map((line, index) => {
+                        // 處理 CSV 的逗號分隔或 Excel 複製的 Tab 分隔
+                        // 如果有引號包住的內容簡單過濾掉引號 (簡易處理)
+                        const cleanLine = line.replace(/"/g, '');
+                        const parts = cleanLine.split(/[\t,]+/);
+                        
+                        if (parts.length < 3) return null;
+                        
+                        // 嘗試尋找分數欄位，通常是最後一個或者是第三個
+                        // 這裡假設格式固定為：ID, Name, Score
+                        const scoreStr = parts[2];
+                        const score = parseFloat(scoreStr);
+                        
+                        // 如果標題列解析失敗 (例如 'Score' 不是數字)，就跳過
+                        if (isNaN(score)) return null;
+
+                        return {
+                            id: parts[0].trim(),
+                            name: parts[1].trim(),
+                            score: score,
+                            originalIndex: index
+                        };
+                    }).filter(item => item !== null);
+
+                    // 排序並計算排名百分比
+                    const sortedByScore = [...parsed].sort((a, b) => b.score - a.score);
+                    const total = sortedByScore.length;
+
+                    const processed = sortedByScore.map((student, index) => {
+                        const rank = index + 1;
+                        const percentile = (rank / total) * 100;
+                        return { ...student, rank, percentile };
+                    });
+
+                    setStudents(processed);
+                    setError('');
+                } catch (e) {
+                    setError('資料格式錯誤，請確保格式為：學號 姓名 分數');
+                }
+            }, [inputText]);
+
+            // 根據門檻與模式計算等級
+            const gradedStudents = useMemo(() => {
+                const enabledGradeKeys = ['A', 'B', 'C', 'D'].filter(key => activeGrades[key]);
+
+                return students.map(student => {
+                    let grade = 'F';
+                    
+                    for (const g of enabledGradeKeys) {
+                        if (mode === 'percentile') {
+                            if (student.percentile <= config.percentile[g]) {
+                                grade = g;
+                                break;
+                            }
+                        } else {
+                            if (student.score >= config.score[g]) {
+                                grade = g;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    return { ...student, grade };
+                });
+            }, [students, config, mode, activeGrades]);
+
+            // 統計數據
+            const stats = useMemo(() => {
+                const counts = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+                gradedStudents.forEach(s => counts[s.grade] = (counts[s.grade] || 0) + 1);
+                return counts;
+            }, [gradedStudents]);
+
+            // 處理設定變更
+            const handleConfigChange = (grade, value) => {
+                setConfig(prev => ({
+                    ...prev,
+                    [mode]: {
+                        ...prev[mode],
+                        [grade]: parseInt(value) || 0
+                    }
+                }));
+            };
+
+            // 處理下載 CSV
+            const handleExport = () => {
+                const header = "學號,姓名,原始分數,排名,落點百分比(Top%),等級\n";
+                const body = gradedStudents.map(s => 
+                    `${s.id},${s.name},${s.score},${s.rank},${s.percentile.toFixed(2)}%,${s.grade}`
+                ).join('\n');
+                
+                const blob = new Blob(["\uFEFF" + header + body], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `成績分析結果_${mode === 'percentile' ? '排名模式' : '分數模式'}.csv`;
+                link.click();
+            };
+
+            return (
+                <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-4 md:p-8">
+                    <div className="max-w-6xl mx-auto space-y-6">
+                        
+                        {/* 標題區 */}
+                        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6 border-gray-200">
+                            <div>
+                                <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
+                                    <Users className="w-8 h-8 text-indigo-600" />
+                                    建築系設計課評分落點系統 v2
+                                </h1>
+                                <p className="text-slate-500 mt-2">
+                                    支援「相對排名」與「絕對分數」雙模式，可自訂等級區間 (A/B/C/D/F)。
+                                </p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setInputText(demoData)}
+                                    className="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium transition-colors"
+                                >
+                                    載入範例
+                                </button>
+                                <button 
+                                    onClick={() => setInputText('')}
+                                    className="px-4 py-2 bg-white border border-red-200 text-red-600 rounded hover:bg-red-50 text-sm font-medium flex items-center gap-2 transition-colors"
+                                >
+                                    <Trash2 size={16} /> 清空
+                                </button>
+                            </div>
+                        </header>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            
+                            {/* 左側：資料輸入區 (佔 4 欄) */}
+                            <div className="lg:col-span-4 space-y-4">
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 h-full flex flex-col">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h2 className="text-lg font-semibold flex items-center gap-2">
+                                            <FileSpreadsheet className="w-5 h-5 text-green-600" />
+                                            1. 資料輸入
+                                        </h2>
+                                        {/* 上傳按鈕 */}
+                                        <label className="cursor-pointer px-3 py-1.5 bg-indigo-50 text-indigo-600 text-sm font-medium rounded hover:bg-indigo-100 transition-colors flex items-center gap-2 border border-indigo-200 shadow-sm">
+                                            <Upload size={16} />
+                                            上傳 CSV
+                                            <input 
+                                                type="file" 
+                                                accept=".csv,.txt,.tsv" 
+                                                className="hidden" 
+                                                onChange={handleFileUpload} 
+                                            />
+                                        </label>
+                                    </div>
+
+                                    <p className="text-sm text-gray-500 mb-2">
+                                        請貼上或上傳 CSV 檔案 (格式：學號, 姓名, 分數)：
+                                    </p>
+                                    <textarea
+                                        value={inputText}
+                                        onChange={(e) => setInputText(e.target.value)}
+                                        className="w-full flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm leading-relaxed min-h-[400px]"
+                                        placeholder={`B09001,王小明,85\nB09002,李大同,90...`}
+                                    />
+                                    {error && (
+                                        <div className="mt-2 text-red-600 text-sm flex items-center gap-2 bg-red-50 p-2 rounded">
+                                            <AlertCircle size={16} /> {error}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 右側：設定與結果 (佔 8 欄) */}
+                            <div className="lg:col-span-8 space-y-6">
+                                
+                                {/* 2. 設定區 */}
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h2 className="text-lg font-semibold flex items-center gap-2">
+                                            <Settings className="w-5 h-5 text-indigo-600" />
+                                            2. 評分規則設定
+                                        </h2>
+                                        
+                                        {/* 模式切換按鈕 */}
+                                        <div className="bg-gray-100 p-1 rounded-lg flex items-center text-sm font-medium">
+                                            <button
+                                                onClick={() => setMode('percentile')}
+                                                className={`px-4 py-2 rounded-md transition-all ${mode === 'percentile' ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                            >
+                                                相對排名 (%)
+                                            </button>
+                                            <button
+                                                onClick={() => setMode('score')}
+                                                className={`px-4 py-2 rounded-md transition-all ${mode === 'score' ? 'bg-white text-indigo-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                                            >
+                                                絕對分數 (Score)
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* 等級勾選區 */}
+                                    <div className="flex gap-4 mb-6 pb-4 border-b border-gray-100">
+                                        <span className="text-sm font-bold text-gray-500 self-center mr-2">啟用等級:</span>
+                                        {['A', 'B', 'C', 'D'].map(grade => (
+                                            <label key={grade} className="flex items-center gap-2 cursor-pointer select-none">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={activeGrades[grade]} 
+                                                    onChange={(e) => setActiveGrades({...activeGrades, [grade]: e.target.checked})}
+                                                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                                />
+                                                <span className={`font-bold ${
+                                                    grade === 'A' ? 'text-indigo-600' : 
+                                                    grade === 'B' ? 'text-blue-600' : 
+                                                    grade === 'C' ? 'text-amber-600' : 
+                                                    'text-orange-600'
+                                                }`}>{grade}</span>
+                                            </label>
+                                        ))}
+                                        <span className="text-gray-400 text-sm self-center ml-2">(其餘為 F)</span>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                        {['A', 'B', 'C', 'D'].map(grade => {
+                                            if (!activeGrades[grade]) return null;
+                                            
+                                            const isPercentile = mode === 'percentile';
+                                            const val = config[mode][grade];
+                                            const colorClass = 
+                                                grade === 'A' ? 'accent-indigo-600 text-indigo-700' : 
+                                                grade === 'B' ? 'accent-blue-600 text-blue-700' : 
+                                                grade === 'C' ? 'accent-amber-500 text-amber-700' : 
+                                                'accent-orange-500 text-orange-700';
+
+                                            return (
+                                                <div key={grade} className="relative">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <label className={`font-bold ${colorClass.split(' ')[1]}`}>
+                                                            {grade} 等級門檻
+                                                        </label>
+                                                        <span className="text-sm font-mono font-medium bg-gray-100 px-2 py-0.5 rounded">
+                                                            {isPercentile ? `前 ${val}%` : `>= ${val} 分`}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <div className="flex items-center gap-3">
+                                                        <input
+                                                            type="range"
+                                                            min="0"
+                                                            max="100"
+                                                            value={val}
+                                                            onChange={(e) => handleConfigChange(grade, e.target.value)}
+                                                            className={`w-full h-2 bg-gray-200 rounded-lg cursor-pointer ${colorClass.split(' ')[0]}`}
+                                                        />
+                                                        <input 
+                                                            type="number" 
+                                                            value={val}
+                                                            onChange={(e) => handleConfigChange(grade, e.target.value)}
+                                                            className="w-16 border rounded p-1 text-center text-sm"
+                                                        />
+                                                    </div>
+                                                    <div className="text-xs text-gray-400 mt-1">
+                                                        {isPercentile 
+                                                            ? `落點在 Top ${val}% 以內為 ${grade}` 
+                                                            : `分數 ${val} 分以上為 ${grade}`}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* 狀態列 */}
+                                    <div className="flex flex-wrap gap-2 mt-8 pt-4 border-t border-gray-100">
+                                        {['A', 'B', 'C', 'D'].map(grade => (
+                                            activeGrades[grade] && (
+                                                <div key={grade} className={`flex-1 min-w-[100px] p-3 rounded-lg text-center border
+                                                    ${grade === 'A' ? 'bg-indigo-50 border-indigo-100 text-indigo-700' : 
+                                                    grade === 'B' ? 'bg-blue-50 border-blue-100 text-blue-700' : 
+                                                    grade === 'C' ? 'bg-amber-50 border-amber-100 text-amber-700' : 
+                                                    'bg-orange-50 border-orange-100 text-orange-700'}`}>
+                                                    <div className="text-2xl font-bold">{stats[grade]} 人</div>
+                                                    <div className="text-xs font-medium">獲得 {grade}</div>
+                                                </div>
+                                            )
+                                        ))}
+                                         <div className="flex-1 min-w-[100px] bg-red-50 border border-red-100 p-3 rounded-lg text-center text-red-700">
+                                            <div className="text-2xl font-bold">{stats.F} 人</div>
+                                            <div className="text-xs font-medium">獲得 F</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 3. 結果列表 */}
+                                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                                    <div className="p-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                                        <h2 className="text-lg font-semibold text-gray-800">3. 評分結果預覽</h2>
+                                        <button 
+                                            onClick={handleExport}
+                                            disabled={students.length === 0}
+                                            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <Download size={18} />
+                                            匯出 Excel
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="overflow-x-auto max-h-[500px]">
+                                        <table className="w-full text-left border-collapse relative">
+                                            <thead className="sticky top-0 bg-gray-100 shadow-sm z-10">
+                                                <tr className="text-gray-600 text-sm uppercase tracking-wider">
+                                                    <th className="p-4 font-semibold w-20">排名</th>
+                                                    <th className="p-4 font-semibold">學號</th>
+                                                    <th className="p-4 font-semibold">姓名</th>
+                                                    <th className="p-4 font-semibold text-right">分數</th>
+                                                    <th className="p-4 font-semibold text-right">落點 (Top%)</th>
+                                                    <th className="p-4 font-semibold text-center w-24">等級</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100">
+                                                {gradedStudents.length > 0 ? (
+                                                    gradedStudents.map((student) => (
+                                                        <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+                                                            <td className="p-4 text-gray-500 font-mono">#{student.rank}</td>
+                                                            <td className="p-4 text-gray-800 font-medium">{student.id}</td>
+                                                            <td className="p-4 text-gray-800">{student.name}</td>
+                                                            <td className="p-4 text-right font-mono font-bold text-gray-700">{student.score}</td>
+                                                            <td className="p-4 text-right font-mono text-gray-500">
+                                                                {student.percentile.toFixed(1)}%
+                                                            </td>
+                                                            <td className="p-4 text-center">
+                                                                <span className={`
+                                                                    inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm shadow-sm
+                                                                    ${student.grade === 'A' ? 'bg-indigo-100 text-indigo-700' : 
+                                                                    student.grade === 'B' ? 'bg-blue-100 text-blue-700' : 
+                                                                    student.grade === 'C' ? 'bg-amber-100 text-amber-700' : 
+                                                                    student.grade === 'D' ? 'bg-orange-100 text-orange-700' :
+                                                                    'bg-red-100 text-red-700'}
+                                                                `}>
+                                                                    {student.grade}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="6" className="p-8 text-center text-gray-400">
+                                                            尚未輸入資料
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<GradingApp />);
+    </script>
+</body>
+</html>

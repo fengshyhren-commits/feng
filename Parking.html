@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臺中市公有停車場綠美化考核自評</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add html2canvas and jsPDF libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+        .result-card {
+            transition: all 0.3s ease-in-out;
+        }
+        .score-highlight {
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+          -webkit-appearance: none; 
+          margin: 0; 
+        }
+        input[type=number] {
+          -moz-appearance: textfield;
+        }
+        .tab-btn.active {
+            border-color: #0d9488; /* teal-600 */
+            background-color: #0d9488;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div id="capture-area" class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-teal-700">臺中市公有停車場綠美化考核自評</h1>
+            <p class="mt-2 text-lg text-gray-600">綠美化自評計分工具</p>
+        </header>
+
+        <!-- Shared Basic Info -->
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 mb-6">
+            <h2 class="text-2xl font-bold text-gray-700 border-b-2 border-teal-500 pb-2 mb-4">基本資料</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label for="district" class="block text-sm font-medium text-gray-700">行政區域</label>
+                    <select id="district" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                        <option>中區</option><option>東區</option><option>南區</option><option>西區</option><option>北區</option><option>北屯區</option><option>西屯區</option><option>南屯區</option><option>太平區</option><option>大里區</option><option selected>霧峰區</option><option>烏日區</option><option>豐原區</option><option>后里區</option><option>石岡區</option><option>東勢區</option><option>和平區</option><option>新社區</option><option>潭子區</option><option>大雅區</option><option>神岡區</option><option>大肚區</option><option>沙鹿區</option><option>龍井區</option><option>梧棲區</option><option>清水區</option><option>大甲區</option><option>外埔區</option><option>大安區</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="parkingLotName" class="block text-sm font-medium text-gray-700">停車場名稱</label>
+                    <input type="text" id="parkingLotName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" placeholder="請輸入場地名稱">
+                </div>
+                <div>
+                    <label for="evaluationDate" class="block text-sm font-medium text-gray-700">自評日期</label>
+                    <input type="date" id="evaluationDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                    <button id="tab-surface" type="button" class="tab-btn active w-1/2 py-4 px-1 text-center border-b-4 font-medium text-lg">平面停車場</button>
+                    <button id="tab-multistory" type="button" class="tab-btn w-1/2 py-4 px-1 text-center border-b-4 font-medium text-lg text-gray-500 hover:text-gray-700 hover:border-gray-300">地上立體停車場</button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Surface Lot Content -->
+            <div id="content-surface" class="tab-content active">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                            <h2 class="text-2xl font-bold text-gray-700 border-b-2 border-teal-500 pb-2 mb-4">第一部分：綠覆面積計算</h2>
+                             <div>
+                                <label for="totalArea-surface" class="block text-sm font-medium text-gray-700">停車場總面積 (M²)<span class="text-red-500">*</span></label>
+                                <input type="number" id="totalArea-surface" min="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" placeholder="計算綠覆率之基礎">
+                            </div>
+                            <hr class="my-6">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">一、綠覆面積計算</h3>
+                            <p class="text-sm text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">綠覆率計分：綠覆率最高 30% ，得分 49 分。</p>
+                            <div class="space-y-4">
+                                <fieldset class="border border-gray-200 p-4 rounded-lg"><legend class="text-md font-medium px-2">喬木類 (株)</legend><div class="grid grid-cols-1 sm:grid-cols-3 gap-4"><div><label for="largeTrees-surface" class="block text-sm font-medium text-gray-600">大喬木 (25 M²/株)</label><input type="number" id="largeTrees-surface" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="mediumTrees-surface" class="block text-sm font-medium text-gray-600">中喬木 (16 M²/株)</label><input type="number" id="mediumTrees-surface" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="smallTrees-surface" class="block text-sm font-medium text-gray-600">小喬木 (9 M²/株)</label><input type="number" id="smallTrees-surface" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div></div></fieldset>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="palmTrees-surface" class="block text-sm font-medium text-gray-600">棕櫚類 (9 M²/株)</label><input type="number" id="palmTrees-surface" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="oldTrees-surface" class="block text-sm font-medium text-gray-600">既有老樹實際樹冠被覆面積 (M²)</label><input type="number" id="oldTrees-surface" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="shrubs-surface" class="block text-sm font-medium text-gray-600">灌木類面積 (M²)</label><input type="number" id="shrubs-surface" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="groundCover-surface" class="block text-sm font-medium text-gray-600">草花、地被、草皮面積 (M²)</label><input type="number" id="groundCover-surface" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="grassPavers-surface" class="block text-sm font-medium text-gray-600">透水性植草磚鋪設面積 (M²)</label><input type="number" id="grassPavers-surface" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"><p class="text-gray-500 text-xs mt-1">系統將自動以鋪設面積 1/3 計算綠覆面積</p></div></div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                            <h2 class="text-2xl font-bold text-gray-700 border-b-2 border-teal-500 pb-2 mb-4">第二部份：綠化設計與維管檢核</h2>
+                            <div class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="flex items-start space-x-3 bg-gray-50 p-4 rounded-lg"><input id="permeablePavement-surface" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><div class="flex-1"><label for="permeablePavement-surface" class="font-medium text-gray-900">二、停車格鋪面採用可透水之植草磚</label><p class="text-gray-500 text-sm">勾選得分: 10分</p></div></div><div class="flex items-start space-x-3 bg-gray-50 p-4 rounded-lg"><input id="concavePlanting-surface" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><div class="flex-1"><label for="concavePlanting-surface" class="font-medium text-gray-900">三、植栽穴(帶)為下凹式或與地面順平</label><p class="text-gray-500 text-sm">勾選得分: 8分</p></div></div></div>
+                                <fieldset class="border border-gray-200 p-4 rounded-lg"><legend class="text-md font-medium px-2">四、植栽整體生長狀況 (9%)</legend><p class="text-gray-500 text-sm mb-2">整體枝葉茂密或覆蓋程度</p><select id="growthStatus-surface" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"><option value="0">請選擇...</option><option value="9">良好 (約75%以上)</option><option value="6">普通 (50%以上未達75%)</option><option value="3">略少 (未達50%)</option></select></fieldset>
+                                <fieldset class="border border-gray-200 p-4 rounded-lg"><legend class="text-md font-medium px-2">五、植栽設計妥適性 (最高9分)</legend><div class="space-y-4"><div class="flex items-start space-x-3"><input id="multiLayer-surface" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><label for="multiLayer-surface" class="font-medium text-gray-900">植栽配置為複層式 (3分)</label></div><div class="flex items-start space-x-3"><input id="flowering-surface" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><label for="flowering-surface" class="font-medium text-gray-900">植栽為開花或誘蝶鳥種類 (3分)</label></div><div><label for="speciesCount-surface" class="block text-sm font-medium text-gray-700">喬灌木種類共計幾種？</label><input type="number" id="speciesCount-surface" min="0" value="0" class="mt-1 block w-full md:w-1/2 rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"><p class="text-gray-500 text-xs mt-1">3種1分, 4種2分, 5種以上3分</p></div></div></fieldset>
+                                <fieldset class="border border-gray-200 p-4 rounded-lg"><legend class="text-md font-medium px-2">六、維護管理狀況 (最高9分)</legend><div class="grid grid-cols-1 sm:grid-cols-3 gap-4"><div class="flex items-start space-x-3"><input id="autoIrrigation-surface" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><label for="autoIrrigation-surface" class="font-medium text-gray-900">自動澆灌 (3分)</label></div><div class="flex items-start space-x-3"><input id="pruning-surface" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><label for="pruning-surface" class="font-medium text-gray-900">定期修剪 (3分)</label></div><div class="flex items-start space-x-3"><input id="fertilization-surface" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><label for="fertilization-surface" class="font-medium text-gray-900">定期施肥 (3分)</label></div></div></fieldset>
+                                <fieldset class="border border-gray-200 p-4 rounded-lg"><legend class="text-md font-medium px-2">七、創新作為 (最高6分)</legend><p class="text-gray-500 text-sm mb-4">任何1項創新作為得3分，如：電動車位、太陽能板、雨水收集系統等。</p><div class="space-y-4"><div class="flex items-start space-x-3"><input id="innovation1-surface" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><input type="text" class="flex-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" placeholder="請填寫創新項目一"></div><div class="flex items-start space-x-3"><input id="innovation2-surface" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><input type="text" class="flex-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" placeholder="請填寫創新項目二"></div></div></fieldset>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- Surface Lot Result -->
+                    <div class="lg:col-span-1">
+                        <div class="sticky top-8 bg-white p-6 rounded-xl shadow-lg border-2 border-teal-500 result-card">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-4">計算結果 (平面)</h2>
+                            <div class="space-y-4 mb-6"><div class="flex justify-between items-baseline"><span class="text-gray-600">綠覆總面積:</span><span id="greenAreaResult-surface" class="font-bold text-xl text-teal-600">0.00 M²</span></div><div class="flex justify-between items-baseline"><span class="text-gray-600">綠覆率:</span><span id="greenRateResult-surface" class="font-bold text-xl text-teal-600">0.00 %</span></div></div>
+                            <div class="bg-gray-50 p-4 rounded-lg space-y-3"><h3 class="text-lg font-semibold text-gray-700 mb-2">各項得分</h3><div class="flex justify-between text-sm"><span class="text-gray-600">一、綠覆率</span><span id="score1-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">二、透水鋪面</span><span id="score2-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">三、植栽穴</span><span id="score3-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">四、生長狀況</span><span id="score4-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">五、設計妥適性</span><span id="score5-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">六、維護管理</span><span id="score6-surface" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">七、創新作為</span><span id="score7-surface" class="font-medium text-gray-800">0 分</span></div></div>
+                            <div class="mt-6 pt-6 border-t-2 border-dashed border-gray-300 text-center"><p class="text-lg text-gray-600">總得分</p><p id="totalScore-surface" class="text-6xl font-bold text-teal-700 score-highlight mt-2">0</p></div>
+                            <div class="mt-6 text-center no-print"><button id="saveButton-surface" class="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-300 ease-in-out">存檔 (PDF)</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multi-story Lot Content -->
+            <div id="content-multistory" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Area calculation -->
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                            <h2 class="text-2xl font-bold text-gray-700 border-b-2 border-teal-500 pb-2 mb-4">第一部分：建築面積與綠覆面積</h2>
+                            <fieldset class="border border-gray-200 p-4 rounded-lg">
+                                <legend class="text-md font-medium px-2">建築總面積計算 (M²)</legend>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div><label for="roofArea-multistory" class="block text-sm font-medium text-gray-600">屋頂平面面積</label><input type="number" id="roofArea-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div>
+                                    <div><label for="eastFacadeArea-multistory" class="block text-sm font-medium text-gray-600">東向立面面積</label><input type="number" id="eastFacadeArea-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div>
+                                    <div><label for="westFacadeArea-multistory" class="block text-sm font-medium text-gray-600">西向立面面積</label><input type="number" id="westFacadeArea-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div>
+                                    <div><label for="southFacadeArea-multistory" class="block text-sm font-medium text-gray-600">南向立面面積</label><input type="number" id="southFacadeArea-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div>
+                                    <div><label for="northFacadeArea-multistory" class="block text-sm font-medium text-gray-600">北向立面面積</label><input type="number" id="northFacadeArea-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div>
+                                </div>
+                            </fieldset>
+                            <hr class="my-6">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-2">一、總綠覆面積計算</h3>
+                             <p class="text-sm text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200"><span class="font-bold">綠覆率計分：</span>綠覆率達 30% 以上，可得最高 56 分。</p>
+                            <div class="space-y-4">
+                                <fieldset class="border border-gray-200 p-4 rounded-lg"><legend class="text-md font-medium px-2">喬木類 (株)</legend><div class="grid grid-cols-1 sm:grid-cols-3 gap-4"><div><label for="largeTrees-multistory" class="block text-sm font-medium text-gray-600">大喬木 (25 M²/株)</label><input type="number" id="largeTrees-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="mediumTrees-multistory" class="block text-sm font-medium text-gray-600">中喬木 (16 M²/株)</label><input type="number" id="mediumTrees-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="smallTrees-multistory" class="block text-sm font-medium text-gray-600">小喬木 (9 M²/株)</label><input type="number" id="smallTrees-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div></div></fieldset>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label for="palmTrees-multistory" class="block text-sm font-medium text-gray-600">棕櫚類 (9 M²/株)</label><input type="number" id="palmTrees-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="shrubs-multistory" class="block text-sm font-medium text-gray-600">灌木類面積 (M²)</label><input type="number" id="shrubs-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="groundCover-multistory" class="block text-sm font-medium text-gray-600">草花、地被、草皮面積 (M²)</label><input type="number" id="groundCover-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div><div><label for="vines-multistory" class="block text-sm font-medium text-gray-600">蔓藤類實際被覆面積 (M²)</label><input type="number" id="vines-multistory" min="0" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"></div></div>
+                            </div>
+                        </div>
+                        <!-- Scoring -->
+                        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                            <h2 class="text-2xl font-bold text-gray-700 border-b-2 border-teal-500 pb-2 mb-4">第二部份：綠化設計與維管檢核</h2>
+                            <div class="space-y-6">
+                                <fieldset class="border border-gray-200 p-4 rounded-lg"><legend class="text-md font-medium px-2">二、植栽整體生長狀況 (12%)</legend><p class="text-gray-500 text-sm mb-2">整體枝葉茂密或覆蓋程度</p><select id="growthStatus-multistory" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"><option value="0">請選擇...</option><option value="12">良好 (約75%以上)</option><option value="8">普通 (50%以上未達75%)</option><option value="4">略少 (未達50%)</option></select></fieldset>
+                                <fieldset class="border border-gray-200 p-4 rounded-lg"><legend class="text-md font-medium px-2">三、植栽設計妥適性 (最高12分)</legend><div class="space-y-4"><div class="flex items-start space-x-3"><input id="multiLayer-multistory" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><label for="multiLayer-multistory" class="font-medium text-gray-900">植栽配置為複層式 (4分)</label></div><div class="flex items-start space-x-3"><input id="flowering-multistory" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><label for="flowering-multistory" class="font-medium text-gray-900">植栽具開花或誘蝶鳥種類 (4分)</label></div><div><label for="speciesCount-multistory" class="block text-sm font-medium text-gray-700">喬、灌、蔓種類共計幾種？</label><input type="number" id="speciesCount-multistory" min="0" value="0" class="mt-1 block w-full md:w-1/2 rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"><p class="text-gray-500 text-xs mt-1">3種1分, 4種2分, 5種3分, 6種以上4分</p></div></div></fieldset>
+                                <fieldset class="border border-gray-200 p-4 rounded-lg"><legend class="text-md font-medium px-2">四、維護管理狀況 (最高12分)</legend><div class="grid grid-cols-1 sm:grid-cols-3 gap-4"><div class="flex items-start space-x-3"><input id="autoIrrigation-multistory" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><label for="autoIrrigation-multistory" class="font-medium text-gray-900">自動澆灌 (4分)</label></div><div class="flex items-start space-x-3"><input id="pruning-multistory" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><label for="pruning-multistory" class="font-medium text-gray-900">定期修剪 (4分)</label></div><div class="flex items-start space-x-3"><input id="fertilization-multistory" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><label for="fertilization-multistory" class="font-medium text-gray-900">定期施肥 (4分)</label></div></div></fieldset>
+                                <fieldset class="border border-gray-200 p-4 rounded-lg"><legend class="text-md font-medium px-2">五、創新作為 (最高8分)</legend><p class="text-gray-500 text-sm mb-4">任何1項創新作為得4分，如：電動車位、太陽能板、雨水收集系統等。</p><div class="space-y-4"><div class="flex items-start space-x-3"><input id="innovation1-multistory" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><input type="text" class="flex-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" placeholder="請填寫創新項目一"></div><div class="flex items-start space-x-3"><input id="innovation2-multistory" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-teal-600 focus:ring-teal-500 mt-1"><input type="text" class="flex-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" placeholder="請填寫創新項目二"></div></div></fieldset>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- Multi-story Lot Result -->
+                    <div class="lg:col-span-1">
+                        <div class="sticky top-8 bg-white p-6 rounded-xl shadow-lg border-2 border-teal-500 result-card">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-4">計算結果 (立體)</h2>
+                            <div class="space-y-4 mb-6"><div class="flex justify-between items-baseline"><span class="text-gray-600">建築總面積:</span><span id="totalBuildingAreaResult-multistory" class="font-bold text-xl text-teal-600">0.00 M²</span></div><div class="flex justify-between items-baseline"><span class="text-gray-600">綠覆總面積:</span><span id="greenAreaResult-multistory" class="font-bold text-xl text-teal-600">0.00 M²</span></div><div class="flex justify-between items-baseline"><span class="text-gray-600">綠覆率:</span><span id="greenRateResult-multistory" class="font-bold text-xl text-teal-600">0.00 %</span></div></div>
+                            <div class="bg-gray-50 p-4 rounded-lg space-y-3"><h3 class="text-lg font-semibold text-gray-700 mb-2">各項得分</h3><div class="flex justify-between text-sm"><span class="text-gray-600">一、綠覆率</span><span id="score1-multistory" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">二、生長狀況</span><span id="score2-multistory" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">三、設計妥適性</span><span id="score3-multistory" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">四、維護管理</span><span id="score4-multistory" class="font-medium text-gray-800">0 分</span></div><div class="flex justify-between text-sm"><span class="text-gray-600">五、創新作為</span><span id="score5-multistory" class="font-medium text-gray-800">0 分</span></div></div>
+                            <div class="mt-6 pt-6 border-t-2 border-dashed border-gray-300 text-center"><p class="text-lg text-gray-600">總得分</p><p id="totalScore-multistory" class="text-6xl font-bold text-teal-700 score-highlight mt-2">0</p></div>
+                            <div class="mt-6 text-center no-print"><button id="saveButton-multistory" class="w-full bg-teal-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-300 ease-in-out">存檔 (PDF)</button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="text-center mt-8 mb-4 text-sm text-gray-500 no-print">
+        <p>© 2025 臺中市停車場景觀總顧問</p>
+    </footer>
+
+    <script>
+    // --- Utility Functions ---
+    const getNum = (el) => parseFloat(el.value) || 0;
+    const getEl = (id) => document.getElementById(id);
+
+    // --- DOM Element Selection ---
+    // Shared
+    const districtSelect = getEl('district');
+    const parkingLotNameInput = getEl('parkingLotName');
+    const evaluationDateInput = getEl('evaluationDate');
+    const allInputs = document.querySelectorAll('input, select');
+
+    // Tabs
+    const tabSurface = getEl('tab-surface');
+    const tabMultistory = getEl('tab-multistory');
+    const contentSurface = getEl('content-surface');
+    const contentMultistory = getEl('content-multistory');
+
+    // --- Surface Lot Elements ---
+    const surfaceElements = {
+        totalArea: getEl('totalArea-surface'),
+        largeTrees: getEl('largeTrees-surface'),
+        mediumTrees: getEl('mediumTrees-surface'),
+        smallTrees: getEl('smallTrees-surface'),
+        palmTrees: getEl('palmTrees-surface'),
+        oldTrees: getEl('oldTrees-surface'),
+        shrubs: getEl('shrubs-surface'),
+        groundCover: getEl('groundCover-surface'),
+        grassPavers: getEl('grassPavers-surface'),
+        permeablePavement: getEl('permeablePavement-surface'),
+        concavePlanting: getEl('concavePlanting-surface'),
+        growthStatus: getEl('growthStatus-surface'),
+        multiLayer: getEl('multiLayer-surface'),
+        flowering: getEl('flowering-surface'),
+        speciesCount: getEl('speciesCount-surface'),
+        autoIrrigation: getEl('autoIrrigation-surface'),
+        pruning: getEl('pruning-surface'),
+        fertilization: getEl('fertilization-surface'),
+        innovation1: getEl('innovation1-surface'),
+        innovation2: getEl('innovation2-surface'),
+        greenAreaResult: getEl('greenAreaResult-surface'),
+        greenRateResult: getEl('greenRateResult-surface'),
+        score1: getEl('score1-surface'),
+        score2: getEl('score2-surface'),
+        score3: getEl('score3-surface'),
+        score4: getEl('score4-surface'),
+        score5: getEl('score5-surface'),
+        score6: getEl('score6-surface'),
+        score7: getEl('score7-surface'),
+        totalScore: getEl('totalScore-surface'),
+        saveButton: getEl('saveButton-surface')
+    };
+
+    // --- Multi-story Lot Elements ---
+    const multistoryElements = {
+        roofArea: getEl('roofArea-multistory'),
+        eastFacadeArea: getEl('eastFacadeArea-multistory'),
+        westFacadeArea: getEl('westFacadeArea-multistory'),
+        southFacadeArea: getEl('southFacadeArea-multistory'),
+        northFacadeArea: getEl('northFacadeArea-multistory'),
+        largeTrees: getEl('largeTrees-multistory'),
+        mediumTrees: getEl('mediumTrees-multistory'),
+        smallTrees: getEl('smallTrees-multistory'),
+        palmTrees: getEl('palmTrees-multistory'),
+        shrubs: getEl('shrubs-multistory'),
+        groundCover: getEl('groundCover-multistory'),
+        vines: getEl('vines-multistory'),
+        growthStatus: getEl('growthStatus-multistory'),
+        multiLayer: getEl('multiLayer-multistory'),
+        flowering: getEl('flowering-multistory'),
+        speciesCount: getEl('speciesCount-multistory'),
+        autoIrrigation: getEl('autoIrrigation-multistory'),
+        pruning: getEl('pruning-multistory'),
+        fertilization: getEl('fertilization-multistory'),
+        innovation1: getEl('innovation1-multistory'),
+        innovation2: getEl('innovation2-multistory'),
+        totalBuildingAreaResult: getEl('totalBuildingAreaResult-multistory'),
+        greenAreaResult: getEl('greenAreaResult-multistory'),
+        greenRateResult: getEl('greenRateResult-multistory'),
+        score1: getEl('score1-multistory'),
+        score2: getEl('score2-multistory'),
+        score3: getEl('score3-multistory'),
+        score4: getEl('score4-multistory'),
+        score5: getEl('score5-multistory'),
+        totalScore: getEl('totalScore-multistory'),
+        saveButton: getEl('saveButton-multistory')
+    };
+
+
+    // --- Calculation Logic ---
+
+    function calculateSurfaceScore() {
+        const el = surfaceElements;
+        const largeTreeArea = getNum(el.largeTrees) * 25;
+        const mediumTreeArea = getNum(el.mediumTrees) * 16;
+        const smallTreeArea = getNum(el.smallTrees) * 9;
+        const palmTreeArea = getNum(el.palmTrees) * 9;
+        const oldTreeArea = getNum(el.oldTrees);
+        const shrubArea = getNum(el.shrubs);
+        const groundCoverArea = getNum(el.groundCover);
+        const grassPaverArea = getNum(el.grassPavers) / 3;
+        const totalGreenArea = largeTreeArea + mediumTreeArea + smallTreeArea + palmTreeArea + oldTreeArea + shrubArea + groundCoverArea + grassPaverArea;
+        el.greenAreaResult.textContent = `${totalGreenArea.toFixed(2)} M²`;
+
+        const totalParkingArea = getNum(el.totalArea);
+        const greenRate = totalParkingArea > 0 ? (totalGreenArea / totalParkingArea) * 100 : 0;
+        el.greenRateResult.textContent = `${greenRate.toFixed(2)} %`;
+
+        let score1 = 0;
+        if (greenRate >= 30) score1 = 49;
+        else if (greenRate >= 25) score1 = 42;
+        else if (greenRate >= 20) score1 = 35;
+        else if (greenRate >= 15) score1 = 28;
+        else if (greenRate >= 10) score1 = 21;
+        else if (greenRate >= 5) score1 = 14;
+        else if (greenRate > 0) score1 = 7;
+        el.score1.textContent = `${score1} 分`;
+
+        const score2 = el.permeablePavement.checked ? 10 : 0;
+        el.score2.textContent = `${score2} 分`;
+        const score3 = el.concavePlanting.checked ? 8 : 0;
+        el.score3.textContent = `${score3} 分`;
+        const score4 = getNum(el.growthStatus);
+        el.score4.textContent = `${score4} 分`;
+
+        let score5 = 0;
+        if (el.multiLayer.checked) score5 += 3;
+        if (el.flowering.checked) score5 += 3;
+        const speciesCount = getNum(el.speciesCount);
+        if (speciesCount >= 5) score5 += 3;
+        else if (speciesCount === 4) score5 += 2;
+        else if (speciesCount === 3) score5 += 1;
+        el.score5.textContent = `${score5} 分`;
+
+        let score6 = 0;
+        if (el.autoIrrigation.checked) score6 += 3;
+        if (el.pruning.checked) score6 += 3;
+        if (el.fertilization.checked) score6 += 3;
+        el.score6.textContent = `${score6} 分`;
+
+        let score7 = 0;
+        if (el.innovation1.checked) score7 += 3;
+        if (el.innovation2.checked) score7 += 3;
+        el.score7.textContent = `${score7} 分`;
+        
+        const totalScore = score1 + score2 + score3 + score4 + score5 + score6 + score7;
+        updateTotalScoreUI(el.totalScore, totalScore);
+    }
+
+    function calculateMultiStoryScore() {
+        const el = multistoryElements;
+        const totalBuildingArea = getNum(el.roofArea) + getNum(el.eastFacadeArea) + getNum(el.westFacadeArea) + getNum(el.southFacadeArea) + getNum(el.northFacadeArea);
+        el.totalBuildingAreaResult.textContent = `${totalBuildingArea.toFixed(2)} M²`;
+
+        const largeTreeArea = getNum(el.largeTrees) * 25;
+        const mediumTreeArea = getNum(el.mediumTrees) * 16;
+        const smallTreeArea = getNum(el.smallTrees) * 9;
+        const palmTreeArea = getNum(el.palmTrees) * 9;
+        const shrubArea = getNum(el.shrubs);
+        const groundCoverArea = getNum(el.groundCover);
+        const vineArea = getNum(el.vines);
+        const totalGreenArea = largeTreeArea + mediumTreeArea + smallTreeArea + palmTreeArea + shrubArea + groundCoverArea + vineArea;
+        el.greenAreaResult.textContent = `${totalGreenArea.toFixed(2)} M²`;
+        
+        const greenRate = totalBuildingArea > 0 ? (totalGreenArea / totalBuildingArea) * 100 : 0;
+        el.greenRateResult.textContent = `${greenRate.toFixed(2)} %`;
+
+        let score1 = 0;
+        if (greenRate >= 30) score1 = 56;
+        else if (greenRate >= 25) score1 = 48;
+        else if (greenRate >= 20) score1 = 40;
+        else if (greenRate >= 15) score1 = 32;
+        else if (greenRate >= 10) score1 = 24;
+        else if (greenRate >= 5) score1 = 16;
+        else if (greenRate > 0) score1 = 8;
+        el.score1.textContent = `${score1} 分`;
+
+        const score2 = getNum(el.growthStatus);
+        el.score2.textContent = `${score2} 分`;
+
+        let score3 = 0;
+        if (el.multiLayer.checked) score3 += 4;
+        if (el.flowering.checked) score3 += 4;
+        const speciesCount = getNum(el.speciesCount);
+        if (speciesCount >= 6) score3 += 4;
+        else if (speciesCount === 5) score3 += 3;
+        else if (speciesCount === 4) score3 += 2;
+        else if (speciesCount === 3) score3 += 1;
+        el.score3.textContent = `${score3} 分`;
+
+        let score4 = 0;
+        if (el.autoIrrigation.checked) score4 += 4;
+        if (el.pruning.checked) score4 += 4;
+        if (el.fertilization.checked) score4 += 4;
+        el.score4.textContent = `${score4} 分`;
+
+        let score5 = 0;
+        if (el.innovation1.checked) score5 += 4;
+        if (el.innovation2.checked) score5 += 4;
+        el.score5.textContent = `${score5} 分`;
+
+        const totalScore = score1 + score2 + score3 + score4 + score5;
+        updateTotalScoreUI(el.totalScore, totalScore);
+    }
+    
+    function updateTotalScoreUI(element, score) {
+        element.textContent = score;
+        element.style.transform = 'scale(1.1)';
+        if (score >= 80) {
+            element.style.color = '#047857'; // Teal-700
+        } else if (score >= 60) {
+            element.style.color = '#f59e0b'; // Amber-500
+        } else {
+            element.style.color = '#dc2626'; // Red-600
+        }
+        setTimeout(() => {
+            element.style.transform = 'scale(1)';
+        }, 200);
+    }
+
+    // --- Tab Logic ---
+    function switchTab(activeTab) {
+        if (activeTab === 'surface') {
+            tabSurface.classList.add('active');
+            tabMultistory.classList.remove('active');
+            contentSurface.classList.add('active');
+            contentMultistory.classList.remove('active');
+        } else {
+            tabSurface.classList.remove('active');
+            tabMultistory.classList.add('active');
+            contentSurface.classList.remove('active');
+            contentMultistory.classList.add('active');
+        }
+        calculateScoresForActiveTab();
+    }
+
+    function calculateScoresForActiveTab() {
+        if (contentSurface.classList.contains('active')) {
+            calculateSurfaceScore();
+        } else {
+            calculateMultiStoryScore();
+        }
+    }
+
+    // --- Save to PDF Logic ---
+    function saveAsPdf(type) {
+        const button = (type === 'surface') ? surfaceElements.saveButton : multistoryElements.saveButton;
+        const lotTypeName = (type === 'surface') ? '平面停車場' : '立體停車場';
+
+        button.disabled = true;
+        // button.textContent = '處理中...'; // Removed as per user request
+
+        html2canvas(getEl('capture-area'), { 
+            scale: 2, 
+            useCORS: true,
+            onclone: (clonedDoc) => {
+                const formElements = clonedDoc.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], select');
+                formElements.forEach(el => {
+                    const replacement = clonedDoc.createElement('div');
+                    const computedStyle = window.getComputedStyle(el);
+                    
+                    // Copy all relevant styles for layout and appearance
+                    replacement.style.width = computedStyle.width;
+                    replacement.style.height = computedStyle.height;
+                    replacement.style.border = computedStyle.border;
+                    replacement.style.borderRadius = computedStyle.borderRadius;
+                    replacement.style.backgroundColor = '#ffffff';
+                    replacement.style.fontSize = computedStyle.fontSize;
+                    replacement.style.fontFamily = computedStyle.fontFamily;
+                    replacement.style.color = computedStyle.color;
+                    replacement.style.boxSizing = 'border-box';
+                    replacement.style.paddingLeft = computedStyle.paddingLeft;
+                    replacement.style.paddingRight = computedStyle.paddingRight;
+                    replacement.style.marginTop = computedStyle.marginTop;
+                    replacement.style.marginRight = computedStyle.marginRight;
+                    replacement.style.marginBottom = computedStyle.marginBottom;
+                    replacement.style.marginLeft = computedStyle.marginLeft;
+
+                    // The ultimate centering solution using a nested span and flexbox
+                    replacement.style.display = 'flex';
+                    replacement.style.alignItems = 'center';
+
+                    let valueText = '';
+                    if (el.tagName.toLowerCase() === 'select') {
+                        valueText = el.options[el.selectedIndex] ? el.options[el.selectedIndex].text.trim() : '';
+                    } else {
+                        valueText = el.value;
+                    }
+                    
+                    replacement.textContent = valueText || '\u00A0'; // Non-breaking space for empty fields
+
+                    if (el.parentNode) {
+                        el.parentNode.replaceChild(replacement, el);
+                    }
+                });
+            }
+        })
+        .then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const canvasAspectRatio = canvas.width / canvas.height;
+            let imgWidth = pdfWidth;
+            let imgHeight = pdfWidth / canvasAspectRatio;
+            if (imgHeight > pdfHeight) {
+                imgHeight = pdfHeight;
+                imgWidth = pdfHeight * canvasAspectRatio;
+            }
+            const xOffset = (pdfWidth - imgWidth) / 2;
+            pdf.addImage(imgData, 'PNG', xOffset, 0, imgWidth, imgHeight);
+
+            const district = districtSelect.value;
+            const parkingLotName = parkingLotNameInput.value.trim() || '未命名停車場';
+            const dateString = evaluationDateInput.value || '未指定日期';
+            const filename = `[${district}]${parkingLotName}_${lotTypeName}綠美化評分_${dateString}.pdf`;
+            
+            pdf.save(filename);
+
+        })
+        .catch(err => {
+            console.error("PDF generation failed:", err);
+            alert('抱歉，存檔時發生錯誤。');
+        })
+        .finally(() => {
+            // No need for timeout, just re-enable the button
+            button.disabled = false;
+        });
+    }
+    
+    // --- Initial Setup ---
+    function setDefaultDate() {
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        evaluationDateInput.value = formattedDate;
+    }
+
+    // --- Event Listeners ---
+    allInputs.forEach(input => {
+        input.addEventListener('input', calculateScoresForActiveTab);
+        input.addEventListener('change', calculateScoresForActiveTab);
+    });
+
+    tabSurface.addEventListener('click', () => switchTab('surface'));
+    tabMultistory.addEventListener('click', () => switchTab('multistory'));
+    surfaceElements.saveButton.addEventListener('click', () => saveAsPdf('surface'));
+    multistoryElements.saveButton.addEventListener('click', () => saveAsPdf('multistory'));
+
+    window.addEventListener('load', () => {
+        setDefaultDate();
+        switchTab('surface'); // Start on surface tab
+    });
+    </script>
+
+</body>
+</html>

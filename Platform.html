@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臺中市公有停車場互動式綠美化評分平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+        .main-container {
+            height: calc(100vh - 4rem);
+        }
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            cursor: grab;
+        }
+        #canvas-container:active {
+            cursor: grabbing;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .tool-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .tool-btn.active {
+            background-color: #0d9488; /* teal-600 */
+            color: white;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #14b8a6; /* teal-500 */
+        }
+        /* Custom scrollbar for sidebar */
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9; /* slate-100 */
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* slate-400 */
+            border-radius: 4px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* slate-500 */
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-gray-800 flex flex-col h-screen overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md z-20">
+        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-teal-700">臺中市公有停車場互動式綠美化評分平台</h1>
+            <div id="status-display" class="text-sm text-gray-500 font-medium">請先上傳平面圖</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex-grow flex main-container">
+        <!-- Left: Canvas and Toolbar -->
+        <div class="flex-grow flex flex-col bg-gray-300 relative">
+            <!-- Toolbar -->
+            <div class="bg-white p-2 shadow-md z-10">
+                <div class="flex flex-wrap items-center gap-2">
+                    <input type="file" id="upload-btn" accept="image/jpeg, image/png" class="hidden">
+                    <button id="upload-label" class="tool-btn bg-teal-500 text-white px-3 py-2 rounded-md hover:bg-teal-600 text-sm font-medium">上傳平面圖</button>
+                    <button id="set-scale-btn" class="tool-btn bg-amber-500 text-white px-3 py-2 rounded-md hover:bg-amber-600 text-sm font-medium" disabled>設定比例尺</button>
+                    <span class="border-l border-gray-300 h-8 mx-2"></span>
+                    <button id="add-large-tree-btn" class="tool-btn bg-gray-200 px-3 py-2 rounded-md hover:bg-gray-300 text-sm font-medium" disabled>+ 大喬木</button>
+                    <button id="add-medium-tree-btn" class="tool-btn bg-gray-200 px-3 py-2 rounded-md hover:bg-gray-300 text-sm font-medium" disabled>+ 中喬木</button>
+                    <button id="add-small-tree-btn" class="tool-btn bg-gray-200 px-3 py-2 rounded-md hover:bg-gray-300 text-sm font-medium" disabled>+ 小喬木</button>
+                    <span class="border-l border-gray-300 h-8 mx-2"></span>
+                    <button id="draw-shrub-btn" class="tool-btn bg-gray-200 px-3 py-2 rounded-md hover:bg-gray-300 text-sm font-medium" disabled>繪製灌木/地被</button>
+                    <button id="draw-paver-btn" class="tool-btn bg-gray-200 px-3 py-2 rounded-md hover:bg-gray-300 text-sm font-medium" disabled>繪製植草磚</button>
+                    <span class="border-l border-gray-300 h-8 mx-2"></span>
+                     <button id="undo-btn" class="tool-btn bg-gray-200 px-3 py-2 rounded-md hover:bg-gray-300 text-sm font-medium" disabled>復原上一步</button>
+                    <button id="clear-btn" class="tool-btn bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 text-sm font-medium" disabled>全部清除</button>
+                     <div class="flex-grow"></div>
+                     <div class="flex items-center gap-1">
+                        <button id="zoom-out-btn" class="tool-btn bg-gray-200 w-8 h-8 rounded-md hover:bg-gray-300 text-lg font-bold" disabled>-</button>
+                        <button id="zoom-reset-btn" class="tool-btn bg-gray-200 px-2 h-8 rounded-md hover:bg-gray-300 text-xs" disabled>重設</button>
+                        <button id="zoom-in-btn" class="tool-btn bg-gray-200 w-8 h-8 rounded-md hover:bg-gray-300 text-lg font-bold" disabled>+</button>
+                        <span id="zoom-display" class="text-sm text-gray-500 ml-2 w-16 text-center">100%</span>
+                     </div>
+                </div>
+            </div>
+            <!-- Canvas Container -->
+            <div id="canvas-container" class="flex-grow">
+                 <canvas id="main-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Right: Scoring Panel -->
+        <div class="w-full lg:w-[450px] bg-white flex-shrink-0 shadow-lg flex flex-col">
+            <div class="p-4 border-b">
+                <h2 class="text-xl font-bold text-gray-700">評分與設定面板</h2>
+            </div>
+            <div class="flex-grow overflow-y-auto sidebar-scroll p-4 space-y-4">
+                <!-- Basic Info -->
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                    <h3 class="font-semibold text-gray-700 mb-2">基本資料</h3>
+                     <div class="space-y-2">
+                        <div>
+                            <label for="totalArea" class="block text-sm font-medium text-gray-600">停車場總面積 (m²)<span class="text-red-500">*</span></label>
+                            <div class="flex items-center gap-2 mt-1">
+                                <input type="number" id="totalArea" min="0" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm" placeholder="可手動輸入或框選">
+                                <button id="draw-total-area-btn" class="tool-btn bg-indigo-500 text-white px-3 py-2 rounded-md hover:bg-indigo-600 text-sm font-medium flex-shrink-0" disabled>框選面積</button>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+
+                <!-- Green Coverage -->
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                    <h3 class="font-semibold text-gray-700 mb-2">一、綠覆面積 (互動標註)</h3>
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500">大喬木(株)</label>
+                                <input type="number" id="largeTrees" class="mt-1 w-full bg-gray-200" value="0" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500">中喬木(株)</label>
+                                <input type="number" id="mediumTrees" class="mt-1 w-full bg-gray-200" value="0" readonly>
+                            </div>
+                             <div>
+                                <label class="block text-xs font-medium text-gray-500">小喬木(株)</label>
+                                <input type="number" id="smallTrees" class="mt-1 w-full bg-gray-200" value="0" readonly>
+                            </div>
+                        </div>
+                         <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500">灌木/地被(m²)</label>
+                                <input type="number" id="shrubs" class="mt-1 w-full bg-gray-200" value="0" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500">植草磚(m²)</label>
+                                <input type="number" id="grassPavers" class="mt-1 w-full bg-gray-200" value="0" readonly>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-400">註：喬木數量與綠地面積由左側畫布標註自動計算。</p>
+                         <hr>
+                         <p class="text-sm font-medium text-gray-600">其他手動輸入項目：</p>
+                          <div class="grid grid-cols-2 gap-2">
+                             <div>
+                                <label for="palmTrees" class="block text-xs font-medium text-gray-500">棕櫚類 (株)</label>
+                                <input type="number" id="palmTrees" min="0" value="0" class="mt-1 w-full rounded-md border-gray-300">
+                            </div>
+                            <div>
+                                <label for="oldTrees" class="block text-xs font-medium text-gray-500">既有老樹 (m²)</label>
+                                <input type="number" id="oldTrees" min="0" value="0" class="mt-1 w-full rounded-md border-gray-300">
+                            </div>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Checklist -->
+                <div class="bg-slate-50 p-4 rounded-lg border">
+                    <h3 class="font-semibold text-gray-700 mb-2">二至七項、設計與維管檢核</h3>
+                     <div class="space-y-4">
+                        <div class="flex items-center"><input id="permeablePavement" type="checkbox" class="h-4 w-4 rounded border-gray-300 mr-2"><label for="permeablePavement" class="text-sm">二、停車格採透水植草磚 (+10分)</label></div>
+                        <div class="flex items-center"><input id="concavePlanting" type="checkbox" class="h-4 w-4 rounded border-gray-300 mr-2"><label for="concavePlanting" class="text-sm">三、植栽穴為下凹式或順平 (+8分)</label></div>
+                        <div>
+                            <label class="text-sm block mb-1">四、植栽整體生長狀況</label>
+                             <select id="growthStatus" class="w-full text-sm rounded-md border-gray-300">
+                                <option value="0">請選擇... (0分)</option>
+                                <option value="9">良好 (75%以上) (+9分)</option>
+                                <option value="6">普通 (50%-75%) (+6分)</option>
+                                <option value="3">略少 (&lt;50%) (+3分)</option>
+                            </select>
+                        </div>
+                        <fieldset class="border border-gray-200 p-2 rounded-lg">
+                            <legend class="text-sm px-1">五、植栽設計妥適性 (最高9分)</legend>
+                            <div class="space-y-2 text-sm p-1">
+                                <div class="flex items-center"><input id="multiLayer" type="checkbox" class="h-4 w-4 rounded border-gray-300 mr-2"><label for="multiLayer">複層式配置 (+3分)</label></div>
+                                <div class="flex items-center"><input id="flowering" type="checkbox" class="h-4 w-4 rounded border-gray-300 mr-2"><label for="flowering">開花或誘蝶鳥種類 (+3分)</label></div>
+                                <div>
+                                    <label for="speciesCount" class="block text-xs mb-1">喬灌木種類數量</label>
+                                    <input type="number" id="speciesCount" min="0" value="0" class="w-full rounded-md border-gray-300 text-sm">
+                                    <p class="text-xs text-gray-400 mt-1">3種+1分, 4種+2分, 5種以上+3分</p>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset class="border border-gray-200 p-2 rounded-lg">
+                            <legend class="text-sm px-1">六、維護管理狀況 (最高9分)</legend>
+                             <div class="space-y-2 text-sm p-1">
+                                <div class="flex items-center"><input id="autoIrrigation" type="checkbox" class="h-4 w-4 rounded border-gray-300 mr-2"><label for="autoIrrigation">自動澆灌 (+3分)</label></div>
+                                <div class="flex items-center"><input id="pruning" type="checkbox" class="h-4 w-4 rounded border-gray-300 mr-2"><label for="pruning">定期修剪 (+3分)</label></div>
+                                <div class="flex items-center"><input id="fertilization" type="checkbox" class="h-4 w-4 rounded border-gray-300 mr-2"><label for="fertilization">定期施肥 (+3分)</label></div>
+                            </div>
+                        </fieldset>
+                        <fieldset class="border border-gray-200 p-2 rounded-lg">
+                            <legend class="text-sm px-1">七、創新作為 (最高6分)</legend>
+                             <div class="space-y-2 text-sm p-1">
+                                <div class="flex items-center"><input id="innovation1" type="checkbox" class="h-4 w-4 rounded border-gray-300 mr-2"><label for="innovation1">創新作為一 (+3分)</label></div>
+                                <div class="flex items-center"><input id="innovation2" type="checkbox" class="h-4 w-4 rounded border-gray-300 mr-2"><label for="innovation2">創新作為二 (+3分)</label></div>
+                            </div>
+                        </fieldset>
+                     </div>
+                </div>
+            </div>
+             <!-- Results Footer -->
+            <div class="p-4 border-t mt-auto bg-white">
+                <div class="space-y-2 mb-3">
+                    <div class="flex justify-between items-baseline"><span class="text-gray-600">綠覆總面積:</span><span id="greenAreaResult" class="font-bold text-lg text-teal-600">0.00 m²</span></div>
+                    <div class="flex justify-between items-baseline"><span class="text-gray-600">綠覆率:</span><span id="greenRateResult" class="font-bold text-lg text-teal-600">0.00 %</span></div>
+                </div>
+                 <div class="text-center">
+                    <p class="text-md text-gray-600">總得分</p>
+                    <p id="totalScore" class="text-5xl font-bold text-teal-700 mt-1">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for setting scale -->
+    <div id="scale-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">設定比例尺</h3>
+            <p class="text-sm text-gray-600 mb-2">您標示的線段長度為 <strong id="pixel-distance">0.00</strong> 像素。</p>
+            <p class="text-sm text-gray-600 mb-4">請輸入此線段的實際長度（公尺）：</p>
+            <div>
+                <label for="scale-input" class="sr-only">實際長度（公尺）</label>
+                <input type="number" id="scale-input" class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500" placeholder="例如：5">
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="scale-cancel-btn" type="button" class="bg-gray-200 px-4 py-2 rounded-md hover:bg-gray-300 text-sm font-medium">取消</button>
+                <button id="scale-confirm-btn" type="button" class="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700 text-sm font-medium">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // --- IIFE Wrapper ---
+    (function() {
+        // --- DOM Elements ---
+        const uploadBtn = document.getElementById('upload-btn');
+        const uploadLabel = document.getElementById('upload-label');
+        const setScaleBtn = document.getElementById('set-scale-btn');
+        const canvasContainer = document.getElementById('canvas-container');
+        const canvas = document.getElementById('main-canvas');
+        const ctx = canvas.getContext('2d');
+        const statusDisplay = document.getElementById('status-display');
+        
+        // Modal elements
+        const scaleModal = document.getElementById('scale-modal');
+        const pixelDistanceEl = document.getElementById('pixel-distance');
+        const scaleInput = document.getElementById('scale-input');
+        const scaleConfirmBtn = document.getElementById('scale-confirm-btn');
+        const scaleCancelBtn = document.getElementById('scale-cancel-btn');
+
+        // Zoom elements
+        const zoomInBtn = document.getElementById('zoom-in-btn');
+        const zoomOutBtn = document.getElementById('zoom-out-btn');
+        const zoomResetBtn = document.getElementById('zoom-reset-btn');
+        const zoomDisplay = document.getElementById('zoom-display');
+        
+        const toolBtns = {
+            largeTree: document.getElementById('add-large-tree-btn'),
+            mediumTree: document.getElementById('add-medium-tree-btn'),
+            smallTree: document.getElementById('add-small-tree-btn'),
+            shrub: document.getElementById('draw-shrub-btn'),
+            paver: document.getElementById('draw-paver-btn'),
+            setScale: setScaleBtn,
+            drawTotalArea: document.getElementById('draw-total-area-btn')
+        };
+
+        const actionBtns = {
+            undo: document.getElementById('undo-btn'),
+            clear: document.getElementById('clear-btn'),
+        }
+
+        const scoreInputs = {
+            totalArea: document.getElementById('totalArea'),
+            largeTrees: document.getElementById('largeTrees'),
+            mediumTrees: document.getElementById('mediumTrees'),
+            smallTrees: document.getElementById('smallTrees'),
+            shrubs: document.getElementById('shrubs'),
+            grassPavers: document.getElementById('grassPavers'),
+            palmTrees: document.getElementById('palmTrees'),
+            oldTrees: document.getElementById('oldTrees'),
+            permeablePavement: document.getElementById('permeablePavement'),
+            concavePlanting: document.getElementById('concavePlanting'),
+            growthStatus: document.getElementById('growthStatus'),
+            multiLayer: document.getElementById('multiLayer'),
+            flowering: document.getElementById('flowering'),
+            speciesCount: document.getElementById('speciesCount'),
+            autoIrrigation: document.getElementById('autoIrrigation'),
+            pruning: document.getElementById('pruning'),
+            fertilization: document.getElementById('fertilization'),
+            innovation1: document.getElementById('innovation1'),
+            innovation2: document.getElementById('innovation2'),
+        };
+
+        const resultDisplays = {
+            greenArea: document.getElementById('greenAreaResult'),
+            greenRate: document.getElementById('greenRateResult'),
+            totalScore: document.getElementById('totalScore'),
+        };
+
+        // --- State Variables ---
+        let image = null; 
+        let scale = { pixels: 0, meters: 0, pixelsPerMeter: 0 };
+        let mode = null; // 'set-scale', 'add-tree', 'draw-area'
+        let currentTool = null; // 'largeTree', 'shrub', etc.
+        let annotations = []; // { type, data }
+        let totalAreaPolygon = null;
+        let scalePoints = [];
+        let currentPolygon = [];
+        let isDrawing = false;
+        
+        // Viewport state
+        let viewTransform = { x: 0, y: 0, scale: 1 };
+        let isPanning = false;
+        let panStart = { x: 0, y: 0 };
+
+        // --- Canvas & Drawing Logic ---
+        function resizeCanvas() {
+            const containerRect = canvasContainer.getBoundingClientRect();
+            canvas.width = containerRect.width;
+            canvas.height = containerRect.height;
+            if (image) {
+                resetView();
+            } else {
+                redraw();
+            }
+        }
+
+        function redraw() {
+            ctx.save();
+            ctx.fillStyle = '#d1d5db'; // gray-300
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.translate(viewTransform.x, viewTransform.y);
+            ctx.scale(viewTransform.scale, viewTransform.scale);
+            
+            if (image) {
+                ctx.drawImage(image, 0, 0, image.width, image.height);
+                
+                if (totalAreaPolygon) {
+                    drawTotalAreaPolygon(totalAreaPolygon);
+                }
+
+                annotations.forEach(anno => {
+                    if (anno.type.includes('Tree')) drawTree(anno);
+                    else if (['shrub', 'paver'].includes(anno.type)) drawPolygon(anno);
+                });
+
+                if (mode === 'set-scale' && scalePoints.length > 0) drawScaleLine();
+                if (mode === 'draw-area' && currentPolygon.length > 0) drawCurrentPolygon();
+            }
+            ctx.restore();
+        }
+
+        function drawTotalAreaPolygon(anno) {
+            if (anno.data.points.length < 2) return;
+            ctx.strokeStyle = 'rgba(79, 70, 229, 0.8)'; // Indigo-700
+            ctx.lineWidth = 3 / viewTransform.scale;
+            ctx.setLineDash([10 / viewTransform.scale, 5 / viewTransform.scale]); // Dashed line
+            ctx.beginPath();
+            ctx.moveTo(anno.data.points[0].x, anno.data.points[0].y);
+            for (let i = 1; i < anno.data.points.length; i++) {
+                ctx.lineTo(anno.data.points[i].x, anno.data.points[i].y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset line dash
+        }
+        
+        function drawTree(anno) {
+            ctx.beginPath();
+            const radius = { largeTree: 10, mediumTree: 7, smallTree: 4 }[anno.type] / viewTransform.scale;
+            const color = { largeTree: '#15803d', mediumTree: '#16a34a', smallTree: '#4ade80' }[anno.type];
+            ctx.arc(anno.data.x, anno.data.y, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+            ctx.lineWidth = 1 / viewTransform.scale;
+            ctx.stroke();
+        }
+
+        function drawPolygon(anno) {
+            if (anno.data.points.length < 2) return;
+            const color = { shrub: 'rgba(22, 163, 74, 0.5)', paver: 'rgba(161, 161, 170, 0.5)' }[anno.type];
+            ctx.fillStyle = color;
+            ctx.strokeStyle = { shrub: '#16a34a', paver: '#a1a1aa' }[anno.type];
+            ctx.lineWidth = 2 / viewTransform.scale;
+            ctx.beginPath();
+            ctx.moveTo(anno.data.points[0].x, anno.data.points[0].y);
+            for (let i = 1; i < anno.data.points.length; i++) {
+                ctx.lineTo(anno.data.points[i].x, anno.data.points[i].y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+        }
+        
+        function drawScaleLine() {
+            ctx.beginPath();
+            ctx.moveTo(scalePoints[0].x, scalePoints[0].y);
+            if (scalePoints.length > 1) {
+                ctx.lineTo(scalePoints[1].x, scalePoints[1].y);
+            }
+            ctx.strokeStyle = 'red';
+            ctx.lineWidth = 3 / viewTransform.scale;
+            ctx.stroke();
+            scalePoints.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5 / viewTransform.scale, 0, 2 * Math.PI);
+                ctx.fillStyle = 'red';
+                ctx.fill();
+            });
+        }
+        
+        function drawCurrentPolygon() {
+            const color = currentTool === 'drawTotalArea' ? '#4f46e5' : '#0ea5e9'; // Indigo for total area, Sky for others
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2 / viewTransform.scale;
+            ctx.beginPath();
+            ctx.moveTo(currentPolygon[0].x, currentPolygon[0].y);
+            for(let i = 1; i < currentPolygon.length; i++) {
+                ctx.lineTo(currentPolygon[i].x, currentPolygon[i].y);
+            }
+            ctx.stroke();
+            currentPolygon.forEach(p => {
+                 ctx.beginPath();
+                 ctx.arc(p.x, p.y, 4 / viewTransform.scale, 0, 2 * Math.PI);
+                 ctx.fillStyle = color;
+                 ctx.fill();
+            });
+        }
+
+        // --- Event Handlers & Viewport ---
+
+        function getTransformedPoint(x, y) {
+            return {
+                x: (x - viewTransform.x) / viewTransform.scale,
+                y: (y - viewTransform.y) / viewTransform.scale
+            };
+        }
+
+        function handleUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    image = new Image();
+                    image.onload = () => {
+                        resizeCanvas();
+                        enableTools();
+                        statusDisplay.textContent = '圖檔已載入，請設定比例尺';
+                    };
+                    image.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleCanvasMouseDown(e) {
+            if (mode !== null) return;
+            isPanning = true;
+            panStart = { x: e.clientX, y: e.clientY };
+            canvasContainer.style.cursor = 'grabbing';
+        }
+
+        function handleCanvasMouseUp(e) {
+            if (isPanning) {
+                canvasContainer.style.cursor = 'grab';
+            }
+            isPanning = false;
+        }
+
+        function handleCanvasMouseMove(e) {
+            if (!isPanning) return;
+            const dx = e.clientX - panStart.x;
+            const dy = e.clientY - panStart.y;
+            viewTransform.x += dx;
+            viewTransform.y += dy;
+            panStart = { x: e.clientX, y: e.clientY };
+            redraw();
+        }
+
+        function handleCanvasWheel(e) {
+            e.preventDefault();
+            const zoomFactor = 1.1;
+            const mousePos = { x: e.clientX - canvas.getBoundingClientRect().left, y: e.clientY - canvas.getBoundingClientRect().top };
+            const worldPosBeforeZoom = getTransformedPoint(mousePos.x, mousePos.y);
+            
+            let newScale;
+            if (e.deltaY < 0) {
+                newScale = viewTransform.scale * zoomFactor;
+            } else {
+                newScale = viewTransform.scale / zoomFactor;
+            }
+            newScale = Math.max(0.1, Math.min(10, newScale));
+
+            viewTransform.x = mousePos.x - worldPosBeforeZoom.x * newScale;
+            viewTransform.y = mousePos.y - worldPosBeforeZoom.y * newScale;
+            viewTransform.scale = newScale;
+
+            updateZoomDisplay();
+            redraw();
+        }
+
+        function handleCanvasClick(e) {
+            if (isPanning || mode === null) return;
+
+            const transformedPoint = getTransformedPoint(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
+            const { x, y } = transformedPoint;
+            
+            if (x < 0 || y < 0 || x > image.width || y > image.height) return;
+
+            if (mode === 'set-scale') {
+                scalePoints.push({ x, y });
+                if (scalePoints.length === 2) promptForScale();
+                redraw();
+            } else if (mode === 'add-tree') {
+                annotations.push({ type: currentTool, data: { x, y } });
+                updateCalculations();
+                redraw();
+            } else if (mode === 'draw-area') {
+                isDrawing = true;
+                currentPolygon.push({ x, y });
+                 if (e.detail === 2) finishPolygon();
+                redraw();
+            }
+        }
+        
+        function finishPolygon() {
+            if (currentPolygon.length < 3) {
+                currentPolygon = [];
+                isDrawing = false;
+                redraw();
+                return;
+            };
+
+            if (currentTool === 'drawTotalArea') {
+                totalAreaPolygon = { type: 'totalArea', data: { points: [...currentPolygon] } };
+                const pixelArea = polygonArea(currentPolygon);
+                if (scale.pixelsPerMeter > 0) {
+                    const realArea = pixelArea / Math.pow(scale.pixelsPerMeter, 2);
+                    scoreInputs.totalArea.value = realArea.toFixed(2);
+                    calculateScore();
+                }
+                // Manually deactivate the tool to prevent recursion that causes the error
+                toolBtns.drawTotalArea.classList.remove('active');
+                mode = null;
+                currentTool = null;
+                canvasContainer.style.cursor = 'grab';
+                updateStatus();
+            } else {
+                annotations.push({ type: currentTool, data: { points: [...currentPolygon] } });
+                updateCalculations();
+            }
+            
+            currentPolygon = [];
+            isDrawing = false;
+            redraw();
+        }
+
+        function handleToolClick(tool, newMode) {
+            // Special handling for the total area button as it's not in the main toolbar
+            const buttonEl = toolBtns[tool];
+            const isActive = buttonEl.classList.contains('active');
+            
+            Object.values(toolBtns).forEach(btn => btn.classList.remove('active'));
+            mode = null;
+            currentTool = null;
+            canvasContainer.style.cursor = 'grab';
+            
+            if (!isActive) {
+                buttonEl.classList.add('active');
+                mode = newMode;
+                currentTool = tool;
+                canvasContainer.style.cursor = 'crosshair';
+                if (tool === 'drawTotalArea') {
+                    totalAreaPolygon = null; // Clear previous polygon when starting to draw a new one
+                }
+            }
+
+            scalePoints = [];
+            if(isDrawing && currentPolygon.length > 2) {
+                finishPolygon();
+            } else {
+                 currentPolygon = [];
+                 isDrawing = false;
+            }
+            updateStatus();
+            redraw();
+        }
+
+        // --- Logic & Calculations ---
+        function enableTools() {
+            Object.values(toolBtns).forEach(btn => btn.disabled = false);
+            Object.values(actionBtns).forEach(btn => btn.disabled = false);
+            zoomInBtn.disabled = false;
+            zoomOutBtn.disabled = false;
+            zoomResetBtn.disabled = false;
+        }
+        
+        function resetView() {
+            if (!image) return;
+            const canvasAspectRatio = canvas.width / canvas.height;
+            const imageAspectRatio = image.width / image.height;
+            let newScale;
+            if (canvasAspectRatio < imageAspectRatio) {
+                newScale = canvas.width / image.width;
+            } else {
+                newScale = canvas.height / image.height;
+            }
+            viewTransform.scale = newScale * 0.95;
+            viewTransform.x = (canvas.width - image.width * viewTransform.scale) / 2;
+            viewTransform.y = (canvas.height - image.height * viewTransform.scale) / 2;
+            updateZoomDisplay();
+            redraw();
+        }
+        
+        function updateZoomDisplay() {
+            zoomDisplay.textContent = `${Math.round(viewTransform.scale * 100)}%`;
+        }
+
+        function promptForScale() {
+            const distanceInPixels = Math.sqrt(Math.pow(scalePoints[1].x - scalePoints[0].x, 2) + Math.pow(scalePoints[1].y - scalePoints[0].y, 2));
+            pixelDistanceEl.textContent = distanceInPixels.toFixed(2);
+            scaleInput.value = '';
+            scaleModal.classList.remove('hidden');
+            scaleInput.focus();
+        }
+
+        function handleScaleConfirm() {
+            const distanceOnImage = Math.sqrt(Math.pow(scalePoints[1].x - scalePoints[0].x, 2) + Math.pow(scalePoints[1].y - scalePoints[0].y, 2));
+            const realDistance = scaleInput.value;
+
+            if (realDistance && !isNaN(parseFloat(realDistance)) && parseFloat(realDistance) > 0) {
+                scale = {
+                    pixels: distanceOnImage,
+                    meters: parseFloat(realDistance),
+                    pixelsPerMeter: distanceOnImage / parseFloat(realDistance)
+                };
+                statusDisplay.textContent = `比例尺設定完成: 1公尺 ≈ ${scale.pixelsPerMeter.toFixed(2)} 像素`;
+            } else {
+                statusDisplay.textContent = `輸入無效，請重新設定比例尺`;
+            }
+            closeScaleModal();
+        }
+
+        function closeScaleModal() {
+            scaleModal.classList.add('hidden');
+            scalePoints = [];
+            handleToolClick('setScale', null);
+            redraw();
+        }
+
+        function updateStatus() {
+             if (mode === 'set-scale') {
+                 statusDisplay.textContent = '請在圖上點擊兩點來標示已知長度';
+             } else if (mode === 'add-tree') {
+                 statusDisplay.textContent = `新增喬木模式: 點擊以放置一棵 ${ {largeTree: '大', mediumTree: '中', smallTree: '小'}[currentTool] }喬木`;
+             } else if (mode === 'draw-area') {
+                if (currentTool === 'drawTotalArea') {
+                    statusDisplay.textContent = '繪製總面積模式: 點擊放置頂點，雙擊結束繪製';
+                } else {
+                    statusDisplay.textContent = '繪製區域模式: 點擊放置頂點，雙擊結束繪製';
+                }
+             } else if (scale.pixelsPerMeter > 0) {
+                 statusDisplay.textContent = '請選擇工具進行標註';
+             }
+        }
+        
+        function updateCalculations() {
+            let treeCounts = { largeTree: 0, mediumTree: 0, smallTree: 0 };
+            let areaSums = { shrub: 0, paver: 0 };
+            annotations.forEach(anno => {
+                if (anno && anno.type && anno.type.includes('Tree')) {
+                    treeCounts[anno.type]++;
+                } else if (anno && anno.type && ['shrub', 'paver'].includes(anno.type)) {
+                    const pixelArea = polygonArea(anno.data.points);
+                    if (scale.pixelsPerMeter > 0) {
+                        const realArea = pixelArea / Math.pow(scale.pixelsPerMeter, 2);
+                        areaSums[anno.type] += realArea;
+                    }
+                }
+            });
+            scoreInputs.largeTrees.value = treeCounts.largeTree;
+            scoreInputs.mediumTrees.value = treeCounts.mediumTree;
+            scoreInputs.smallTrees.value = treeCounts.smallTree;
+            scoreInputs.shrubs.value = areaSums.shrub.toFixed(2);
+            scoreInputs.grassPavers.value = areaSums.paver.toFixed(2);
+            calculateScore();
+        }
+
+        function polygonArea(points) {
+            let area = 0;
+            let j = points.length - 1;
+            for (let i = 0; i < points.length; i++) {
+                area += (points[j].x + points[i].x) * (points[j].y - points[i].y);
+                j = i;
+            }
+            return Math.abs(area / 2);
+        }
+
+        function calculateScore() {
+            const getNum = (el) => parseFloat(el.value) || 0;
+            const largeTreeArea = getNum(scoreInputs.largeTrees) * 25;
+            const mediumTreeArea = getNum(scoreInputs.mediumTrees) * 16;
+            const smallTreeArea = getNum(scoreInputs.smallTrees) * 9;
+            const palmTreeArea = getNum(scoreInputs.palmTrees) * 9;
+            const oldTreeArea = getNum(scoreInputs.oldTrees);
+            const shrubArea = getNum(scoreInputs.shrubs);
+            const grassPaverArea = getNum(scoreInputs.grassPavers) / 3;
+            const totalGreenArea = largeTreeArea + mediumTreeArea + smallTreeArea + palmTreeArea + oldTreeArea + shrubArea + grassPaverArea;
+            resultDisplays.greenArea.textContent = `${totalGreenArea.toFixed(2)} m²`;
+            const totalParkingArea = getNum(scoreInputs.totalArea);
+            const greenRate = totalParkingArea > 0 ? (totalGreenArea / totalParkingArea) * 100 : 0;
+            resultDisplays.greenRate.textContent = `${greenRate.toFixed(2)} %`;
+            let totalScore = 0;
+            let score1 = 0;
+            if (greenRate >= 30) score1 = 49;
+            else if (greenRate >= 25) score1 = 42;
+            else if (greenRate >= 20) score1 = 35;
+            else if (greenRate >= 15) score1 = 28;
+            else if (greenRate >= 10) score1 = 21;
+            else if (greenRate >= 5) score1 = 14;
+            else if (greenRate > 0) score1 = 7;
+            totalScore += score1;
+            if (scoreInputs.permeablePavement.checked) totalScore += 10;
+            if (scoreInputs.concavePlanting.checked) totalScore += 8;
+            totalScore += getNum(scoreInputs.growthStatus);
+            let designScore = 0;
+            if(scoreInputs.multiLayer.checked) designScore += 3;
+            if(scoreInputs.flowering.checked) designScore += 3;
+            const species = getNum(scoreInputs.speciesCount);
+            if(species >= 5) designScore += 3;
+            else if(species === 4) designScore += 2;
+            else if(species === 3) designScore += 1;
+            totalScore += designScore;
+            let maintenanceScore = 0;
+            if(scoreInputs.autoIrrigation.checked) maintenanceScore += 3;
+            if(scoreInputs.pruning.checked) maintenanceScore += 3;
+            if(scoreInputs.fertilization.checked) maintenanceScore += 3;
+            totalScore += maintenanceScore;
+            let innovationScore = 0;
+            if(scoreInputs.innovation1.checked) innovationScore += 3;
+            if(scoreInputs.innovation2.checked) innovationScore += 3;
+            totalScore += innovationScore;
+            resultDisplays.totalScore.textContent = totalScore;
+        }
+
+        // --- Initialization ---
+        function init() {
+            window.addEventListener('resize', resizeCanvas);
+            uploadLabel.addEventListener('click', () => uploadBtn.click());
+            uploadBtn.addEventListener('change', handleUpload);
+            
+            canvas.addEventListener('mousedown', handleCanvasMouseDown);
+            canvas.addEventListener('mouseup', handleCanvasMouseUp);
+            canvas.addEventListener('mouseleave', handleCanvasMouseUp);
+            canvas.addEventListener('mousemove', handleCanvasMouseMove);
+            canvas.addEventListener('wheel', handleCanvasWheel);
+            canvas.addEventListener('click', handleCanvasClick);
+
+            document.body.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter' && mode === 'draw-area' && isDrawing) {
+                    finishPolygon();
+                }
+            });
+
+            toolBtns.setScale.addEventListener('click', () => handleToolClick('setScale', 'set-scale'));
+            toolBtns.largeTree.addEventListener('click', () => handleToolClick('largeTree', 'add-tree'));
+            toolBtns.mediumTree.addEventListener('click', () => handleToolClick('mediumTree', 'add-tree'));
+            toolBtns.smallTree.addEventListener('click', () => handleToolClick('smallTree', 'add-tree'));
+            toolBtns.shrub.addEventListener('click', () => handleToolClick('shrub', 'draw-area'));
+            toolBtns.paver.addEventListener('click', () => handleToolClick('paver', 'draw-area'));
+            toolBtns.drawTotalArea.addEventListener('click', () => handleToolClick('drawTotalArea', 'draw-area'));
+
+            actionBtns.undo.addEventListener('click', () => { annotations.pop(); updateCalculations(); redraw(); });
+            actionBtns.clear.addEventListener('click', () => { 
+                if (confirm('確定要清除所有標註嗎？')) { 
+                    annotations = []; 
+                    totalAreaPolygon = null;
+                    scoreInputs.totalArea.value = '';
+                    updateCalculations(); 
+                    redraw(); 
+                } 
+            });
+            
+            zoomInBtn.addEventListener('click', () => {
+                handleCanvasWheel({ preventDefault: () => {}, deltaY: -1, clientX: canvas.width/2, clientY: canvas.height/2 });
+            });
+            zoomOutBtn.addEventListener('click', () => {
+                handleCanvasWheel({ preventDefault: () => {}, deltaY: 1, clientX: canvas.width/2, clientY: canvas.height/2 });
+            });
+            zoomResetBtn.addEventListener('click', resetView);
+
+            Object.values(scoreInputs).forEach(input => {
+                input.addEventListener('input', calculateScore);
+                input.addEventListener('change', calculateScore);
+            });
+            
+            scaleConfirmBtn.addEventListener('click', handleScaleConfirm);
+            scaleCancelBtn.addEventListener('click', closeScaleModal);
+            scaleInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); 
+                    handleScaleConfirm();
+                }
+            });
+
+            resizeCanvas();
+            calculateScore();
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>
+
+
